@@ -216,7 +216,8 @@ export const runBlackSwanSimulation = async (scenario: string): Promise<{ report
     const prompt = `Run a "Black Swan" simulation for this scenario: "${scenario}". Analyze ripple effects across finances, work, health, and relationships. Provide a detailed report with Best Case, Worst Case, and Most Likely outcomes. For each outcome, provide a summary and 3-4 leading indicators to monitor. Respond with ONLY the JSON object.`;
     const chat = createChat(prompt);
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = initializeAI();
+        const response = await aiClient.models.generateContent({
             model: "gemini-2.5-pro", contents: prompt,
             config: {
                 systemInstruction: VIGIL_PERSONA,
