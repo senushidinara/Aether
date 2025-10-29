@@ -338,7 +338,8 @@ export const generateFrictionAuditReport = async (userInput: string): Promise<{ 
 export const suggestDecisionFactors = async (decision: string): Promise<{name: string}[]> => {
     const prompt = `For the decision "${decision}", suggest 5-7 relevant factors to consider. Examples: financial cost, time investment, strategic alignment, potential ROI, team morale. Respond with ONLY the JSON object.`;
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = initializeAI();
+        const response = await aiClient.models.generateContent({
             model: "gemini-2.5-flash", contents: prompt,
             config: {
                 systemInstruction: VIGIL_PERSONA,
