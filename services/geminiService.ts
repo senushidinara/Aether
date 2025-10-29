@@ -184,7 +184,8 @@ export const analyzeDecision = async (decision: string, factors: DecisionFactor[
     const prompt = `Analyze the following decision: "${decision}" based on these weighted factors: ${JSON.stringify(factors)}. Provide a clear recommendation, a confidence score (0-100), and detailed lists of pros, cons, and potential pitfalls. Respond with ONLY the JSON object.`;
     const chat = createChat(prompt);
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = initializeAI();
+        const response = await aiClient.models.generateContent({
              model: "gemini-2.5-pro", contents: prompt,
             config: {
                 systemInstruction: VIGIL_PERSONA,
