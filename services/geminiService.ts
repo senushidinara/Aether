@@ -1,11 +1,22 @@
 import { GoogleGenAI, Type, Chat, FunctionDeclaration } from "@google/genai";
 import { GoalPlan, DecisionFactor, DecisionAnalysis, Milestone, Task, BlackSwanSimulationReport, FrictionReportItem, Feature, CommandBarResult } from '../types';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable not set");
-}
+const getAIClient = () => {
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("API_KEY environment variable not set. Please set GEMINI_API_KEY.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI | null = null;
+
+const initializeAI = () => {
+  if (!ai) {
+    ai = getAIClient();
+  }
+  return ai;
+};
 
 const VIGIL_PERSONA = "You are Vigil, the AI Chief of Staff for Aether, a Life Operating System. Your communication style is professional, concise, data-driven, and focused on execution and efficiency. You provide clear, actionable intelligence, not motivation. Address the user directly but maintain a formal, advisory tone. Avoid conversational filler, emojis, or overly friendly language. Your goal is to deliver precise, structured JSON output initially, and then engage in helpful, concise conversation when the user asks follow-up questions.";
 
