@@ -27,7 +27,8 @@ type ApiGoalPlan = Omit<GoalPlan, 'milestones'> & { milestones: ApiMilestone[] }
 
 
 const createChat = (initialPrompt: string): Chat => {
-    return ai.chats.create({
+    const aiClient = initializeAI();
+    return aiClient.chats.create({
         model: "gemini-2.5-pro",
         config: { systemInstruction: VIGIL_PERSONA },
         history: [{ role: 'user', parts: [{ text: initialPrompt }] }]
