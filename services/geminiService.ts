@@ -79,7 +79,8 @@ const navigationTools: FunctionDeclaration[] = [
 
 export const routeUserCommand = async (command: string): Promise<CommandBarResult> => {
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = initializeAI();
+        const response = await aiClient.models.generateContent({
             model: "gemini-2.5-flash",
             contents: `User command: "${command}"`,
             config: {
