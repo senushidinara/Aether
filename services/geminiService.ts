@@ -311,7 +311,8 @@ export const generateFrictionAuditReport = async (userInput: string): Promise<{ 
     const prompt = `Analyze the user's workflow: "${userInput}". Identify 3-4 high-impact inefficiencies. For each, provide a concise analysis, a concrete recommendation, and score its Impact and Effort on a scale of 1-10 (where 10 is highest). Respond with ONLY the JSON object.`;
     const chat = createChat(prompt);
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = initializeAI();
+        const response = await aiClient.models.generateContent({
             model: "gemini-2.5-pro", contents: prompt,
             config: {
                 systemInstruction: VIGIL_PERSONA,
