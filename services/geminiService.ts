@@ -269,8 +269,9 @@ export const generateDailyTasks = async (objective: string, existingPlan?: GoalP
     }
 
     try {
+        const aiClient = initializeAI();
         const [tasksResponse, insightResponse] = await Promise.all([
-             ai.models.generateContent({
+             aiClient.models.generateContent({
                 model: "gemini-2.5-flash", contents: taskPrompt,
                 config: {
                     systemInstruction: VIGIL_PERSONA,
