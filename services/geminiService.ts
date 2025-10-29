@@ -1,11 +1,22 @@
 import { GoogleGenAI, Type, Chat, FunctionDeclaration } from "@google/genai";
 import { GoalPlan, DecisionFactor, DecisionAnalysis, Milestone, Task, BlackSwanSimulationReport, FrictionReportItem, Feature, CommandBarResult } from '../types';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable not set");
-}
+const getAIClient = () => {
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("API_KEY environment variable not set. Please set GEMINI_API_KEY.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI | null = null;
+
+const initializeAI = () => {
+  if (!ai) {
+    ai = getAIClient();
+  }
+  return ai;
+};
 
 const VIGIL_PERSONA = "You are Vigil, the AI Chief of Staff for Aether, a Life Operating System. Your communication style is professional, concise, data-driven, and focused on execution and efficiency. You provide clear, actionable intelligence, not motivation. Address the user directly but maintain a formal, advisory tone. Avoid conversational filler, emojis, or overly friendly language. Your goal is to deliver precise, structured JSON output initially, and then engage in helpful, concise conversation when the user asks follow-up questions.";
 
@@ -16,7 +27,8 @@ type ApiGoalPlan = Omit<GoalPlan, 'milestones'> & { milestones: ApiMilestone[] }
 
 
 const createChat = (initialPrompt: string): Chat => {
-    return ai.chats.create({
+    const aiClient = initializeAI();
+    return aiClient.chats.create({
         model: "gemini-2.5-pro",
         config: { systemInstruction: VIGIL_PERSONA },
         history: [{ role: 'user', parts: [{ text: initialPrompt }] }]
@@ -67,7 +79,8 @@ const navigationTools: FunctionDeclaration[] = [
 
 export const routeUserCommand = async (command: string): Promise<CommandBarResult> => {
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = initializeAI();
+        const response = await aiClient.models.generateContent({
             model: "gemini-2.5-flash",
             contents: `User command: "${command}"`,
             config: {
@@ -112,7 +125,8 @@ export const generateGoalBreakdown = async (goal: string): Promise<{ plan: ApiGo
   const chat = createChat(prompt);
 
   try {
-    const response = await ai.models.generateContent({
+    const aiClient = initializeAI();
+    const response = await aiClient.models.generateContent({
       model: "gemini-2.5-pro", contents: prompt,
       config: {
         systemInstruction: VIGIL_PERSONA,
@@ -170,7 +184,8 @@ export const analyzeDecision = async (decision: string, factors: DecisionFactor[
     const prompt = `Analyze the following decision: "${decision}" based on these weighted factors: ${JSON.stringify(factors)}. Provide a clear recommendation, a confidence score (0-100), and detailed lists of pros, cons, and potential pitfalls. Respond with ONLY the JSON object.`;
     const chat = createChat(prompt);
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = initializeAI();
+        const response = await aiClient.models.generateContent({
              model: "gemini-2.5-pro", contents: prompt,
             config: {
                 systemInstruction: VIGIL_PERSONA,
@@ -201,7 +216,8 @@ export const runBlackSwanSimulation = async (scenario: string): Promise<{ report
     const prompt = `Run a "Black Swan" simulation for this scenario: "${scenario}". Analyze ripple effects across finances, work, health, and relationships. Provide a detailed report with Best Case, Worst Case, and Most Likely outcomes. For each outcome, provide a summary and 3-4 leading indicators to monitor. Respond with ONLY the JSON object.`;
     const chat = createChat(prompt);
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = initializeAI();
+        const response = await aiClient.models.generateContent({
             model: "gemini-2.5-pro", contents: prompt,
             config: {
                 systemInstruction: VIGIL_PERSONA,
@@ -253,8 +269,9 @@ export const generateDailyTasks = async (objective: string, existingPlan?: GoalP
     }
 
     try {
+        const aiClient = initializeAI();
         const [tasksResponse, insightResponse] = await Promise.all([
-             ai.models.generateContent({
+             aiClient.models.generateContent({
                 model: "gemini-2.5-flash", contents: taskPrompt,
                 config: {
                     systemInstruction: VIGIL_PERSONA,
@@ -275,7 +292,7 @@ export const generateDailyTasks = async (objective: string, existingPlan?: GoalP
                     }
                 }
             }),
-             ai.models.generateContent({
+             aiClient.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: `Based on the daily objective "${objective}", provide one concise, strategic insight or question to maintain focus. Max 2 sentences.`,
                 config: { systemInstruction: VIGIL_PERSONA }
@@ -294,7 +311,8 @@ export const generateFrictionAuditReport = async (userInput: string): Promise<{ 
     const prompt = `Analyze the user's workflow: "${userInput}". Identify 3-4 high-impact inefficiencies. For each, provide a concise analysis, a concrete recommendation, and score its Impact and Effort on a scale of 1-10 (where 10 is highest). Respond with ONLY the JSON object.`;
     const chat = createChat(prompt);
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = initializeAI();
+        const response = await aiClient.models.generateContent({
             model: "gemini-2.5-pro", contents: prompt,
             config: {
                 systemInstruction: VIGIL_PERSONA,
@@ -320,7 +338,8 @@ export const generateFrictionAuditReport = async (userInput: string): Promise<{ 
 export const suggestDecisionFactors = async (decision: string): Promise<{name: string}[]> => {
     const prompt = `For the decision "${decision}", suggest 5-7 relevant factors to consider. Examples: financial cost, time investment, strategic alignment, potential ROI, team morale. Respond with ONLY the JSON object.`;
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = initializeAI();
+        const response = await aiClient.models.generateContent({
             model: "gemini-2.5-flash", contents: prompt,
             config: {
                 systemInstruction: VIGIL_PERSONA,
