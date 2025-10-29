@@ -125,7 +125,8 @@ export const generateGoalBreakdown = async (goal: string): Promise<{ plan: ApiGo
   const chat = createChat(prompt);
 
   try {
-    const response = await ai.models.generateContent({
+    const aiClient = initializeAI();
+    const response = await aiClient.models.generateContent({
       model: "gemini-2.5-pro", contents: prompt,
       config: {
         systemInstruction: VIGIL_PERSONA,
