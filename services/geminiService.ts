@@ -292,7 +292,7 @@ export const generateDailyTasks = async (objective: string, existingPlan?: GoalP
                     }
                 }
             }),
-             ai.models.generateContent({
+             aiClient.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: `Based on the daily objective "${objective}", provide one concise, strategic insight or question to maintain focus. Max 2 sentences.`,
                 config: { systemInstruction: VIGIL_PERSONA }
